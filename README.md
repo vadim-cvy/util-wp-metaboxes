@@ -179,3 +179,167 @@ echo $submit_html;
 
 VipRoomSubmittableMetabox::get_instance();
 ```
+
+## Metabox with LINK Action
+
+```php
+// VipRoomLinkActionMetabox.php
+
+class VipRoomLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
+{
+  // ... copy and paste the VipRoomSimpleMetabox code here (see "Metabox with no action" above).
+
+  protected function __construct()
+  {
+    add_action( 'admin_notices', fn() => $this->maybe_display_info_notice() );
+
+    parent::__construct();
+  }
+
+  protected function maybe_display_info_notice() : void
+  {
+    if ( ! $this->can_register() )
+    {
+      return;
+    }
+
+    $refund_requests_number = count( $this->get_refund_requests() );
+
+    if ( $refund_requests_number > 0 )
+    {
+      $this->add_info_admin_notice(
+        "Action required: there are $refund_requests_number refund requests for this room."
+      );
+    }
+  }
+
+  protected function display() : void
+  {
+    $table = $this->get_refund_requests_table();
+
+    require_once YOUR_TEMPLATES_DIR . 'vip-room-link-action-metabox.php';
+  }
+
+  protected function get_refund_requests_table() : array
+  {
+    $table_heading_row = [
+      'id' => 'ID',
+      'reason' => 'Reason',
+      // ... other headings
+      'actions' => 'Actions',
+    ];
+
+    $table_data_rows = [];
+
+    foreach ( $this->get_refund_requests() as $request )
+    {
+      $row = [];
+
+      foreach ( array_keys( $table_heading_row ) as $cell_key )
+      {
+        switch ( $cell_key )
+        {
+          case 'id':
+            $row[ $cell_key ] = '#' . $request->id;
+            break;
+
+          // ... other cases
+
+          case 'actions':
+            $url_args = [ 'request_id' => $request->id ];
+
+            $tag_attrs = [
+              'on-click' => 'e =>
+                ! confirm( \'Are you sure you want to confirm this request?\' ) ?
+                e.preventDefault() :
+                null',
+
+              'class' => 'button button-primary',
+            ];
+
+            $row[ $cell_key ] =
+              $this->get_action_link_tag( 'confirm_refund_request', 'Confirm', $url_args, $tag_attrs );
+
+            // ... $row[ $cell_key ] .= other links
+
+            break;
+        }
+      }
+
+      $table_data_rows[] = $row;
+    }
+
+    return array_merge(
+      [ $table_heading_row ],
+      $table_data_rows
+    );
+  }
+
+  protected function handle_action__confirm_refund_request() : void
+  {
+    $request_id = $this->get_request_arg( 'request_id' );
+
+    // ... validate request exists
+
+    if ( ! $is_request_found )
+    {
+      $this->die( "Can't find request #$request_id!" );
+    }
+
+    // ... perform refund request
+
+    if ( $error_msg )
+    {
+      $this->add_error_admin_notice( 'Error: ' . $error_msg ) :
+    }
+    else
+    {
+      $this->add_success_admin_notice( 'Success message here.' );
+    }
+  }
+
+  protected function get_refund_requests() : float
+  {
+    global $wpdb;
+
+    return $wpdb->get_results($wpdb->prepare(
+      // ... SQL query + args
+    ));
+  }
+}
+```
+
+```php
+// YOUR_TEMPLATES_DIR . 'vip-room-link-action-metabox.php'
+
+printf ( '<table id="%s">', esc_attr( $this->prefix_css_selector( 'refund-requests-table' ) ) );
+
+foreach ( $table as $row_index => $row )
+{
+  echo '<tr>';
+
+  foreach ( $row as $cell_key => $cell_value )
+  {
+    $cell_tag = $row_index === 0 ? 'th' : 'td';
+
+    $cell_class = $this->prefix_css_selector( 'refund-requests-table__cell_' . $cell_key );
+
+    printf( '<%s class="%s">%s</%s>',
+      $cell_tag,
+      esc_attr( $cell_class ),
+      $cell_value,
+      $cell_tag
+    );
+  }
+
+  echo '</tr>';
+}
+
+echo '</table>';
+```
+
+```php
+// init.php
+
+VipRoomLinkActionMetabox::get_instance();
+```
