@@ -1,4 +1,4 @@
-# Boilerplate code
+# Examples
 
 ## Simple metabox (just display some data)
 
@@ -180,12 +180,12 @@ echo $submit_html;
 VipRoomSubmittableMetabox::get_instance();
 ```
 
-## Metabox with LINK Action
+## Metabox with LINK Action (static URL - generated via PHP only)
 
 ```php
-// VipRoomLinkActionMetabox.php
+// VipRoomStaticLinkActionMetabox.php
 
-class VipRoomLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
+class VipRoomStaticLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
 {
   // ... copy and paste the VipRoomSimpleMetabox code here (see "Metabox with no action" above).
 
@@ -217,7 +217,7 @@ class VipRoomLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
   {
     $table = $this->get_refund_requests_table();
 
-    require_once YOUR_TEMPLATES_DIR . 'vip-room-link-action-metabox.php';
+    require_once YOUR_TEMPLATES_DIR . 'vip-room-static-link-action-metabox.php';
   }
 
   protected function get_refund_requests_table() : array
@@ -246,22 +246,7 @@ class VipRoomLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
           // ... other cases
 
           case 'actions':
-            $url_args = [ 'request_id' => $request->id ];
-
-            $tag_attrs = [
-              'on-click' => 'e =>
-                ! confirm( \'Are you sure you want to confirm this request?\' ) ?
-                e.preventDefault() :
-                null',
-
-              'class' => 'button button-primary',
-            ];
-
-            $row[ $cell_key ] =
-              $this->get_action_link_tag( 'confirm_refund_request', 'Confirm', $url_args, $tag_attrs );
-
-            // ... $row[ $cell_key ] .= other links
-
+            $row[ $cell_key ] = $this->get_actions_table_cell_value( $request['id'] );
             break;
         }
       }
@@ -273,6 +258,28 @@ class VipRoomLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
       [ $table_heading_row ],
       $table_data_rows
     );
+  }
+
+  protected function get_actions_table_cell_value( int $request_id ) : string
+  {
+    $output = '';
+
+    $url_args = [ 'request_id' => $request->id ];
+
+    $tag_attrs = [
+      'on-click' => 'e =>
+        ! confirm( \'Are you sure you want to confirm this request?\' ) ?
+        e.preventDefault() :
+        null',
+
+      'class' => 'button button-primary',
+    ];
+
+    $output = $this->get_action_link_tag( 'confirm_refund_request', 'Confirm', $url_args, $tag_attrs );
+
+    // ... $output .= other links
+
+    return $output;
   }
 
   protected function handle_action__confirm_refund_request() : void
@@ -310,7 +317,7 @@ class VipRoomLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
 ```
 
 ```php
-// YOUR_TEMPLATES_DIR . 'vip-room-link-action-metabox.php'
+// YOUR_TEMPLATES_DIR . 'vip-room-static-link-action-metabox.php'
 
 printf ( '<table id="%s">', esc_attr( $this->prefix_css_selector( 'refund-requests-table' ) ) );
 
@@ -341,5 +348,76 @@ echo '</table>';
 ```php
 // init.php
 
-VipRoomLinkActionMetabox::get_instance();
+VipRoomStaticLinkActionMetabox::get_instance();
 ```
+
+## Metabox with LINK Action (dynamic URL - PHP + JS)
+
+```php
+// VipRoomDynamicLinkActionMetabox.php
+
+class VipRoomDynamicLinkActionMetabox extends \Cvy\WP\Metaboxes\PostMetabox
+{
+  // ... copy and paste the VipRoomStaticLinkActionMetabox code here (see the section above).
+
+  protected function get_actions_table_cell_value( int $request_id ) : string
+  {
+    $output = '';
+
+    $url_args = [
+      'request_id' => $request->id,
+      'amount' => '__refundAmount__', // we will let user set custom refund amount via JS
+    ];
+
+    $tag_attrs = [
+      'data-full-price' => $request['full_price'],
+      'class' => 'button button-primary ' . $this->prefix_css_selector( 'my-confirm-refund-request-button' ),
+    ];
+
+    $output = $this->get_action_link_tag( 'confirm_refund_request', 'Confirm', $url_args, $tag_attrs );
+
+    // ... $output .= other links
+
+    return $output;
+  }
+
+  protected function enqueue_assets() : void
+  {
+    wp_enqueue_script(
+      'my-vip-room-dynamic-link-action-metabox',
+      '{assets dir url}/js/vip-room-dynamic-link-action-metabox.js',
+      [ 'jquery' ]
+      // ... other args
+    );
+  }
+}
+```
+
+```js
+// 'vip-room-dynamic-link-action-metabox.js'
+
+$( '.{metabox-slug}-my-confirm-refund-request-button' ).on( 'click', e =>
+{
+  const button = $( e.target )
+
+  const maxAmount = button.data( 'fullPrice' )
+
+  // ... const refundAmount = show popup and ask how much should be refunded
+
+  window.location.href = button.attr( 'href' ).replace( '__refundAmount__', refundAmount )
+})
+```
+
+```php
+// YOUR_TEMPLATES_DIR . 'vip-room-dynamic-link-action-metabox.php'
+
+// content is the same as for the VipRoomStaticLinkActionMetabox.
+```
+
+```php
+// init.php
+
+// content is the same as for the VipRoomStaticLinkActionMetabox.
+```
+
+final protected function get_action_url( string $action_name, array $args = [] ) : string
