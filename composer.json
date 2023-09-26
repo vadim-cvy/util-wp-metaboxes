@@ -1,0 +1,11 @@
+{
+  "name": "cvy/util-wp-metabox",
+  "autoload": {
+    "psr-4": {
+      "Cvy\\WP\\Metabox\\": "src/"
+    }
+  },
+  "require": {
+    "cvy/util-design-patterns": "^1."
+  }
+}
