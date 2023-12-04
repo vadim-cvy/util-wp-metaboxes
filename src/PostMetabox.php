@@ -6,10 +6,17 @@ use \Exception;
 // todo: implement term metabox
 abstract class PostMetabox extends \Cvy\DesignPatterns\Singleton
 {
-  private $admin_notices = [];
+  private $admin_notices;
 
   protected function __construct()
   {
+    if ( ! session_id() )
+    {
+      session_start();
+    }
+
+    $this->set_admin_notices_initial_value();
+
     add_action( 'current_screen', fn() => $this->maybe_handle_action() );
 
     add_action( 'add_meta_boxes', fn() => $this->register() );
@@ -17,6 +24,20 @@ abstract class PostMetabox extends \Cvy\DesignPatterns\Singleton
     add_action( 'admin_enqueue_scripts', fn() => $this->maybe_enqueue_assets() );
 
     add_action( 'admin_notices', fn() => $this->display_admin_notices() );
+  }
+
+  private function set_admin_notices_initial_value() : void
+  {
+    $this->admin_notices = [];
+
+    $sess_key = $this->prefix( 'admin_notices' );
+
+    if ( isset( $_SESSION[ $sess_key ] ) )
+    {
+      $this->admin_notices = $_SESSION[ $sess_key ];
+
+      unset( $_SESSION[ $sess_key ] );
+    }
   }
 
   /**
@@ -46,7 +67,7 @@ abstract class PostMetabox extends \Cvy\DesignPatterns\Singleton
    */
   final protected function can_register() : bool
   {
-    if ( ! did_action( 'current_screen' ) || current_action() === 'current_screen' )
+    if ( ! did_action( 'current_screen' ) && ! current_action() === 'current_screen' )
     {
       throw new Exception( __METHOD__ . ' must not be called before "current_screen" action fired!' );
     }
@@ -147,10 +168,27 @@ abstract class PostMetabox extends \Cvy\DesignPatterns\Singleton
     }
 
     $this->{'handle_action__' . $action_name}();
+
+    if ( $action_name !== 'submit' )
+    {
+      wp_redirect( $this->get_base_url() );
+      exit();
+    }
   }
 
-  final protected function get_submit_html( string $label, array $button_attrs = [] ) : string
+  final protected function get_submit_html(
+    string $label,
+    array $button_attrs = [],
+    bool $add_update_post_suffix = true
+  ) : string
   {
+    if ( $add_update_post_suffix )
+    {
+      $post_type = get_post_type_object( get_post_type( get_the_ID() ) );
+
+      $label .= ' and Update ' . $post_type->labels->singular_name;
+    }
+
     $action_name = 'submit';
 
     $button_attrs = array_merge( $button_attrs, [
@@ -165,7 +203,12 @@ abstract class PostMetabox extends \Cvy\DesignPatterns\Singleton
       esc_attr( $this->create_action_nonce( $action_name ) )
     );
 
-    $submit_button = $this->get_action_tag( $action_name, $label, 'button', $button_attrs );
+    $submit_button = $this->get_action_tag(
+      $action_name,
+      esc_html( $label ),
+      'button',
+      $button_attrs
+    );
 
     return $nonce_input . $submit_button;
   }
@@ -304,11 +347,16 @@ abstract class PostMetabox extends \Cvy\DesignPatterns\Singleton
       'type' => $type,
       'msg' => $msg,
     ];
+
+    if ( get_current_screen()->base === 'post' )
+    {
+      $_SESSION[ $this->prefix( 'admin_notices' ) ] = $this->admin_notices;
+    }
   }
 
   final protected function get_post_id() : int
   {
-    return (int) get_current_screen()->id;
+    return $_GET['post'] ?? $_POST['post_ID'];
   }
 
   final protected function die( string $msg ) : void
