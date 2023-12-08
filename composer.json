@@ -1,8 +1,8 @@
 {
-  "name": "cvy/util-wp-metabox",
+  "name": "cvy/util-wp-metaboxes",
   "autoload": {
     "psr-4": {
-      "Cvy\\WP\\Metabox\\": "src/"
+      "Cvy\\WP\\Metaboxes\\": "src/"
     }
   },
   "require": {
