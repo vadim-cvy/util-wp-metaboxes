@@ -1,21 +1,21 @@
 <?php
-namespace Cvy\WP\Metaboxes\ActionHandlers;
-use \Cvy\WP\Metaboxes\MetaboxNoticesManager;
+namespace Cvy\WP\Metaboxes\Actions;
+use \Cvy\WP\Metaboxes\Notices\NoticesManager;
 use \Exception;
 
-abstract class Handler
+abstract class Action
 {
   private string $metabox_slug;
 
-  private MetaboxNoticesManager $notices_manager;
+  private NoticesManager $notices_manager;
 
-  public function __construct( string $metabox_slug, MetaboxNoticesManager $notices_manager )
+  public function __construct( string $metabox_slug, NoticesManager $notices_manager )
   {
     $this->metabox_slug = $metabox_slug;
     $this->notices_manager = $notices_manager;
   }
 
-  abstract protected function get_name_base() : string;
+  abstract static public function get_name_base() : string;
 
   final protected function get_name() : string
   {

@@ -1,7 +1,7 @@
 <?php
-namespace Cvy\WP\Metaboxes;
+namespace Cvy\WP\Metaboxes\Notices;
 
-abstract class MetaboxNoticesManager extends \Cvy\DesignPatterns\Singleton
+abstract class NoticesManager extends \Cvy\DesignPatterns\Singleton
 {
   private string $metabox_slug;
 

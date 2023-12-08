@@ -1,16 +1,12 @@
 <?php
-namespace Cvy\WP\Metaboxes\ActionHandlers;
+namespace Cvy\WP\Metaboxes\Actions;
 
-abstract class UrlHandler
+abstract class SubmitAction
 {
   final protected function handle() : void
   {
     parent::handle();
-
-    wp_redirect( $this->get_base_url() );
-    exit();
   }
-
 
 
 

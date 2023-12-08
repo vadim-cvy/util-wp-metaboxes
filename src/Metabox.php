@@ -1,8 +1,13 @@
 <?php
 namespace Cvy\WP\Metaboxes;
+use \Cvy\WP\Metaboxes\Notices\NoticesManager;
 
 abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 {
+  private array $actions;
+
+  private NoticesManager $notices_manager;
+
   final protected function __construct()
   {
     add_action( 'current_screen', fn() => $this->maybe_init() );
@@ -20,7 +25,7 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
   {
     $this->register();
 
-    $this->notices_manager = new MetaboxNoticesManager( $this->metabox_slug );
+    $this->notices_manager = new NoticesManager( $this->metabox_slug );
 
     $this->listen_actions();
 
@@ -29,11 +34,16 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract protected function register() : void;
 
+  final protected function get_notices_manager() : NoticesManager
+  {
+    return $this->notices_manager;
+  }
+
   private function listen_actions() : void
   {
-    foreach ( $this->get_action_handlers() as $action_handler )
+    foreach ( $this->get_actions() as $action )
     {
-      $action_handler->listen();
+      $action->listen();
     }
   }
 
@@ -79,5 +89,20 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract protected function get_current_object_id() : int;
 
-  abstract protected function get_action_handlers() : array;
+  final protected function get_actions() : array
+  {
+    if ( ! isset( $this->actions ) )
+    {
+      $this->actions = [];
+
+      foreach ( $this->get_action_instances() as $action )
+      {
+        $this->actions[ $action->get_name_base() ] = $action;
+      }
+    }
+
+    return $this->actions;
+  }
+
+  abstract protected function get_action_instances() : array;
 }
