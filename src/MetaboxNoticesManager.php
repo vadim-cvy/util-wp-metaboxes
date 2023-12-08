@@ -26,10 +26,20 @@ abstract class MetaboxNoticesManager extends \Cvy\DesignPatterns\Singleton
   {
     foreach ( $this->get_notices() as $notice )
     {
-      printf( '<div class="notice notice-%s">%s</div>',
-        $notice['type'],
-        $notice['msg']
-      );
+      $type = esc_attr( $notice['type'] );
+
+      $msg_wrap_tag_name = $this->get_msg_wrap_tag_name();
+
+      $msg_prefix = $this->get_msg_prefix( $notice['type'] );
+
+      $msg = $notice['msg'];
+
+      echo
+        "<div class='notice notice-$type'>
+          <$msg_wrap_tag_name>
+            $msg_prefix $msg
+          </$msg_wrap_tag_name>
+        </div>"
     }
 
     $this->reset_notices();
@@ -45,22 +55,22 @@ abstract class MetaboxNoticesManager extends \Cvy\DesignPatterns\Singleton
     return $_SESSION[ $this->get_session_index() ] = [];
   }
 
-  public function add_success_notice( string $msg, string $print_pattern = null ) : void
+  public function add_success_notice( string $msg  ) : void
   {
-    $this->add_notice( 'success', $msg, $print_pattern );
+    $this->add_notice( 'success', $msg );
   }
 
-  public function add_info_notice( string $msg, string $print_pattern = null ) : void
+  public function add_info_notice( string $msg ) : void
   {
-    $this->add_notice( 'info', $msg, $print_pattern );
+    $this->add_notice( 'info', $msg );
   }
 
-  public function add_error_notice( string $msg, string $print_pattern = null ) : void
+  public function add_error_notice( string $msg ) : void
   {
-    $this->add_notice( 'error', $msg, $print_pattern );
+    $this->add_notice( 'error', $msg );
   }
 
-  private function add_notice( string $type, string $msg, string $print_pattern = null ) : void
+  private function add_notice( string $type, string $msg ) : void
   {
     if ( ! isset( $print_pattern ) )
     {
@@ -78,6 +88,25 @@ abstract class MetaboxNoticesManager extends \Cvy\DesignPatterns\Singleton
       'type' => $type,
       'msg' => $msg,
     ];
+  }
+
+  protected function get_msg_wrap_tag_name() : string
+  {
+    return 'p';
+  }
+
+  protected function get_msg_prefix( string $notice_type ) : string
+  {
+    if ( $notice_type === 'success' )
+    {
+      return 'Success!';
+    }
+    else if ( $notice_type === 'error' )
+    {
+      return 'Error!';
+    }
+
+    return '';
   }
 
   private function get_session_index() : void
