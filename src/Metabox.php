@@ -24,15 +24,15 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   private function maybe_handle_action() : void
   {
-    $action_handler = $this->get_action_handler();
+    $actions_handler = $this->get_actions_handler();
 
-    if ( isset( $action_handler ) && $this->is_authorized() )
+    if ( isset( $actions_handler ) && $this->is_authorized() )
     {
-      $action_handler->listen();
+      $actions_handler->listen();
     }
   }
 
-  protected function is_authorized() : bool
+  private function is_authorized() : bool
   {
     if ( ! did_action( 'current_screen' ) && ! current_action() === 'current_screen' )
     {
@@ -82,5 +82,5 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract protected function get_current_object_id() : int;
 
-  abstract protected function get_action_handler() : MetaboxActionHandler | null;
+  abstract protected function get_actions_handler() : MetaboxActionsHandler | null;
 }
