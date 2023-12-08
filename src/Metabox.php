@@ -3,32 +3,37 @@ namespace Cvy\WP\Metaboxes;
 
 abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 {
-  protected function __construct()
+  final protected function __construct()
   {
-    add_action( 'current_screen', fn() => $this->maybe_register() );
-
-    add_action( 'current_screen', fn() => $this->maybe_handle_action() );
-
-    add_action( 'admin_enqueue_scripts', fn() => $this->maybe_enqueue_assets() );
+    add_action( 'current_screen', fn() => $this->maybe_init() );
   }
 
-  private function maybe_register() : void
+  private function maybe_init() : void
   {
     if ( $this->is_authorized() )
     {
-      $this->register();
+      $this->init();
     }
+  }
+
+  protected function init() : void
+  {
+    $this->register();
+
+    $this->notices_manager = new MetaboxNoticesManager( $this->metabox_slug );
+
+    $this->listen_actions();
+
+    add_action( 'admin_enqueue_scripts', fn() => $this->enqueue_assets() );
   }
 
   abstract protected function register() : void;
 
-  private function maybe_handle_action() : void
+  private function listen_actions() : void
   {
-    $actions_handler = $this->get_actions_handler();
-
-    if ( isset( $actions_handler ) && $this->is_authorized() )
+    foreach ( $this->get_action_handlers() as $action_handler )
     {
-      $actions_handler->listen();
+      $action_handler->listen();
     }
   }
 
@@ -70,17 +75,9 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract protected function render_inner_content() : bool;
 
-  private function maybe_enqueue_assets() : void
-  {
-    if ( $this->is_authorized() )
-    {
-      $this->enqueue_assets();
-    }
-  }
-
   abstract protected function enqueue_assets() : void;
 
   abstract protected function get_current_object_id() : int;
 
-  abstract protected function get_actions_handler() : MetaboxActionsHandler | null;
+  abstract protected function get_action_handlers() : array;
 }
