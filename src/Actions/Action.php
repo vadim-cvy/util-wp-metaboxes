@@ -51,19 +51,48 @@ abstract class Action
 
   abstract protected function handle() : void;
 
-  final protected function get_arg( string $key )
+  final protected function prefix_arg_name( string $arg_base_name ) : string
   {
-    return $this->get_submitted_args()[ $key ] ?? null;
+    return $this->get_arg_name_prefix() . $arg_base_name;
+  }
+
+  private function unprefix_arg_name( string $name ) : string
+  {
+    return str_replace( $this->get_arg_name_prefix(), '', $name );
+  }
+
+  private function get_arg_name_prefix() : string
+  {
+    return $this->get_name() . '_';
+  }
+
+  final protected function get_arg( string $name )
+  {
+    return $this->get_args()[ $name ] ?? null;
   }
 
   final protected function is_submitted() : bool
   {
-    return ! empty( $this->get_submitted_args() );
+    return ! empty( $this->get_args() );
   }
 
-  final protected function get_submitted_args()
+  final protected function get_args()
   {
-    return $_GET[ $this->get_name() ] ?? $_POST[ $this->get_name() ] ?? [];
+    $args = [];
+
+    $all_args = array_merge( $_GET, $_POST );
+
+    foreach ( $all_args as $key => $value )
+    {
+      $unprefixed_key = $this->unprefix_arg_name( $key );
+
+      if ( $key !== $unprefixed_key )
+      {
+        $args[ $unprefixed_key ] = $value;
+      }
+    }
+
+    return $args;
   }
 
   private function create_nonce() : string
