@@ -1,54 +1,38 @@
 <?php
 namespace Cvy\WP\Metaboxes\Actions;
+use \Exception;
 
 abstract class AJAX extends DirectURL
 {
-  final protected function on_handled() : void {}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  final protected function get_action_link_tag(
-    string $action_name,
-    string $label,
-    array $url_args = [],
-    array $tag_attrs = []
-  ) : string
+  public function __construct( string $metabox_slug, NoticesManager $notices_manager )
   {
-    $tag_attrs['href'] = $this->get_action_url( $action_name, $url_args );
+    parent::__construct( $metabox_slug, $notices_manager );
 
-    return $this->get_action_tag( $action_name, $label, 'a', $tag_attrs );
+    add_action( 'admin_enqueue_scripts', fn() => $this->enqueue_js( $this->get_trigger_url() ) );
   }
 
-  private function get_action_tag( string $action_name, string $label, string $tag, array $attrs ) : string
+  final protected function on_handled() : void
   {
-    $attrs['class'] = $attrs['class'] ?? '';
+    $class_name = get_called_class();
 
-    $css_base_class = str_replace( '_', '-', $this->get_slug() ) . '-action-trigger';
-
-    $attrs['class'] .=
-      $css_base_class . ' ' .
-      $css_base_class . '_' . str_replace( '_', '-', $action_name );
-
-    $output = '<' . $tag;
-
-    foreach ( $attrs as $key => $value )
-    {
-      $output .= sprintf( ' %s="%s"', $key, esc_attr( $value ) );
-    }
-
-    $output .= sprintf( '>%s</%s>', $label, $tag );
-
-    return $output;
+    throw new Exception(sprintf(
+      "You must call $class_name::send_{success|error}() in $class_name::handle()!",
+      get_called_class()
+    ));
   }
+
+  final protected function send_success( array $response_data = [] ) : void
+  {
+    wp_send_json_success( $response_data );
+  }
+
+  final protected function send_error( string $error, array $details_data = [] ) : void
+  {
+    wp_send_json_error([
+      'error' => $error,
+      'details' => $details_data,
+    ]);
+  }
+
+  abstract protected function enqueue_js( string $ajax_url ) : void;
 }
