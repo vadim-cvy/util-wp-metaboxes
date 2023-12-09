@@ -1,33 +1,27 @@
 <?php
 namespace Cvy\WP\Metaboxes\Actions;
-use \Cvy\WP\Metaboxes\Notices\NoticesManager;
+use \Cvy\WP\Metaboxes\Metabox;
 use \Exception;
 
 abstract class Action
 {
-  private string $metabox_slug;
+  final protected Metabox $metabox;
 
-  private NoticesManager $notices_manager;
-
-  public function __construct( string $metabox_slug, NoticesManager $notices_manager )
+  public function __construct( Metabox $metabox )
   {
-    $this->metabox_slug = $metabox_slug;
-    $this->notices_manager = $notices_manager;
+    $this->metabox = $metabox;
+
+    $this->listen();
   }
 
   abstract static public function get_name_base() : string;
 
-  final protected function get_name() : string
+  final public function get_name() : string
   {
-    return $this->metabox_slug . '_' . $this->get_name_base();
+    return $this->metabox->get_slug() . '_' . $this->get_name_base();
   }
 
-  public function listen() : void
-  {
-    add_action( 'current_screen', fn() => $this->maybe_handle() );
-  }
-
-  private function maybe_handle() : void
+  private function listen() : void
   {
     if ( ! $this->is_submitted() )
     {
@@ -55,7 +49,7 @@ abstract class Action
 
   abstract protected function on_handled() : void;
 
-  final protected function prefix_arg_name( string $arg_base_name ) : string
+  final public function prefix_arg_name( string $arg_base_name ) : string
   {
     return $this->get_arg_name_prefix() . $arg_base_name;
   }
@@ -70,17 +64,17 @@ abstract class Action
     return $this->get_name() . '_';
   }
 
-  final protected function get_arg( string $name )
+  final public function get_arg( string $name )
   {
     return $this->get_args()[ $name ] ?? null;
   }
 
-  final protected function is_submitted() : bool
+  final public function is_submitted() : bool
   {
     return ! empty( $this->get_args() );
   }
 
-  final protected function get_args()
+  final public function get_args()
   {
     $args = [];
 

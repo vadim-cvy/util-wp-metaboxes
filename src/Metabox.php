@@ -25,11 +25,9 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
   {
     $this->register();
 
-    $this->notices_manager = new NoticesManager( $this->metabox_slug );
+    $this->notices_manager = new NoticesManager( $this->get_slug() );
 
-    $this->listen_actions();
-
-    add_action( 'admin_enqueue_scripts', fn() => $this->enqueue_assets() );
+    $this->init_actions();
   }
 
   abstract protected function register() : void;
@@ -39,12 +37,19 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
     return $this->notices_manager;
   }
 
-  private function listen_actions() : void
+  private function init_actions() : void
   {
-    foreach ( $this->get_actions() as $action )
+    if ( ! isset( $this->actions ) )
     {
-      $action->listen();
+      $this->actions = [];
+
+      foreach ( $this->create_action_instances() as $action )
+      {
+        $this->actions[ $action->get_name_base() ] = $action;
+      }
     }
+
+    $this->actions;
   }
 
   private function is_authorized() : bool
@@ -62,7 +67,7 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract protected function is_current_user_authorized() : bool;
 
-  abstract protected function get_slug() : string;
+  abstract public function get_slug() : string;
 
   abstract protected function get_title() : string;
 
@@ -85,24 +90,7 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract protected function render_inner_content() : bool;
 
-  abstract protected function enqueue_assets() : void;
+  abstract public function get_current_object_id() : int;
 
-  abstract protected function get_current_object_id() : int;
-
-  final protected function get_actions() : array
-  {
-    if ( ! isset( $this->actions ) )
-    {
-      $this->actions = [];
-
-      foreach ( $this->get_action_instances() as $action )
-      {
-        $this->actions[ $action->get_name_base() ] = $action;
-      }
-    }
-
-    return $this->actions;
-  }
-
-  abstract protected function get_action_instances() : array;
+  abstract protected function create_action_instances() : array;
 }

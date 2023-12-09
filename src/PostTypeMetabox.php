@@ -34,12 +34,12 @@ abstract class PostTypeMetabox extends Metabox
     return $screen->base === 'post' && in_array( $screen->post_type, $this->get_post_types() );
   }
 
-  final protected function get_current_post_id() : int
+  final public function get_current_post_id() : int
   {
-    return $_GET['post'] ?? $_POST['post_ID'];
+    return $this->get_current_object_id();
   }
 
-  final protected function get_current_object_id() : int
+  final public function get_current_object_id() : int
   {
     $id = get_the_ID() ? get_the_ID() : null;
 

@@ -5,7 +5,7 @@ abstract class Submit extends Action
 {
   final protected function on_handled() : void {}
 
-  final protected function get_submit_html(
+  final public function get_submit_html(
     string $button_label,
     array $button_attrs = [],
     bool $hide_submit_post_note = false
@@ -23,7 +23,7 @@ abstract class Submit extends Action
     return $button . $submit_post_note . $nonce_input;
   }
 
-  final protected function prefix_input_name( string $input_name ) : string
+  final public function prefix_input_name( string $input_name ) : string
   {
     return $this->prefix_arg_name( $input_name );
   }
