@@ -47,9 +47,13 @@ abstract class Action
     }
 
     $this->handle();
+
+    $this->on_handled();
   }
 
   abstract protected function handle() : void;
+
+  abstract protected function on_handled() : void;
 
   final protected function prefix_arg_name( string $arg_base_name ) : string
   {
