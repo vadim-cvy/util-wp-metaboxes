@@ -5,54 +5,35 @@ abstract class DirectLink extends DirectURL
 {
   final protected function on_handled() : void
   {
-    wp_redirect( $this->get_target_object_edit_url() );
+    wp_redirect( $this->get_current_object_edit_url() );
     exit();
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  final protected function get_action_link_tag(
-    string $action_name,
-    string $label,
-    array $url_args = [],
-    array $tag_attrs = []
-  ) : string
+  final public function get_button( string $label, array $url_args = [], array $tag_attrs = [] ) : string
   {
-    $tag_attrs['href'] = $this->get_action_url( $action_name, $url_args );
+    $tag_attrs['class'] = $tag_attrs['class'] ?? '';
 
-    return $this->get_action_tag( $action_name, $label, 'a', $tag_attrs );
+    $tag_attrs['class'] .= ' button';
+
+    return $this->get_link( $label, $url_args, $tag_attrs );
   }
 
-  private function get_action_tag( string $action_name, string $label, string $tag, array $attrs ) : string
+  final public function get_link( string $label, array $url_args = [], array $tag_attrs = [] ) : string
   {
-    $attrs['class'] = $attrs['class'] ?? '';
+    $tag_attrs['href'] = $this->get_trigger_url( $url_args );
 
-    $css_base_class = str_replace( '_', '-', $this->get_slug() ) . '-action-trigger';
+    return $this->build_link_tag( $label, $tag_attrs );
+  }
 
-    $attrs['class'] .=
-      $css_base_class . ' ' .
-      $css_base_class . '_' . str_replace( '_', '-', $action_name );
-
-    $output = '<' . $tag;
+  private function build_link_tag( string $label, $attrs ) : string
+  {
+    $attrs_str = '';
 
     foreach ( $attrs as $key => $value )
     {
-      $output .= sprintf( ' %s="%s"', $key, esc_attr( $value ) );
+      $attrs_str .= sprintf( ' %s="%s"', esc_attr( $key ), esc_attr( $value ) );
     }
 
-    $output .= sprintf( '>%s</%s>', $label, $tag );
-
-    return $output;
+    return "<a $attrs_str>$label</a>";
   }
 }
