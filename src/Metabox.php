@@ -25,42 +25,24 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
   {
     $this->register();
 
-    $this->notices_manager = new NoticesManager( $this->get_slug() );
-
     $this->init_actions();
   }
 
   abstract protected function register() : void;
 
-  final protected function get_notices_manager() : NoticesManager
+  final public function get_notices_manager() : NoticesManager
   {
-    return $this->notices_manager;
-  }
-
-  private function init_actions() : void
-  {
-    if ( ! isset( $this->actions ) )
+    if ( ! isset( $this->notices_manager ) )
     {
-      $this->actions = [];
-
-      foreach ( $this->create_action_instances() as $action )
-      {
-        $this->actions[ $action->get_name_base() ] = $action;
-      }
+      $this->notices_manager = new NoticesManager( $this->get_slug() );
     }
 
-    $this->actions;
+    return $this->notices_manager;
   }
 
   private function is_authorized() : bool
   {
-    if ( ! did_action( 'current_screen' ) && ! current_action() === 'current_screen' )
-    {
-      throw new \Exception( __METHOD__ . ' must not be called before "current_screen" action fired!' );
-    }
-
-    return $this->is_current_screen_authorized()
-      && $this->is_current_user_authorized();
+    return $this->is_current_screen_authorized() && $this->is_current_user_authorized();
   }
 
   abstract protected function is_current_screen_authorized() : bool;
@@ -77,10 +59,24 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
     $is_success = $this->render_inner_content();
 
-    $content =
-      $is_success ?
-      ob_get_contents() :
-      '<b>Error. Can\'t render this content!</b>';
+    if ( $is_success )
+    {
+      foreach ( $this->get_actions() as $action )
+      {
+        if ( is_a( $action, Actions\Submit::class ) )
+        {
+          $action->_render_hidden_content();
+        }
+      }
+    }
+    else
+    {
+      echo '<b>Error! Can\'t render this content.</b>';
+    }
+
+    $content = ob_get_contents();
+
+    ob_end_clean();
 
     printf( '<div class="%s-metabox-content">%s</div>',
       esc_attr( $this->get_slug() ),
@@ -91,6 +87,28 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
   abstract protected function render_inner_content() : bool;
 
   abstract public function get_current_object_id() : int;
+
+  abstract public function get_current_object_type() : int;
+
+  final protected function get_actions() : array
+  {
+    return $this->actions;
+  }
+
+  private function init_actions() : void
+  {
+    if ( ! isset( $this->actions ) )
+    {
+      $this->actions = [];
+
+      foreach ( $this->create_action_instances() as $action )
+      {
+        $this->actions[ $action->get_name_base() ] = $action;
+      }
+    }
+
+    $this->actions;
+  }
 
   abstract protected function create_action_instances() : array;
 }
