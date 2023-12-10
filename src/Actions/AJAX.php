@@ -1,38 +1,34 @@
 <?php
 namespace Cvy\WP\Metaboxes\Actions;
+use \Cvy\WP\Metaboxes\Metabox;
 use \Exception;
 
 abstract class AJAX extends DirectURL
 {
-  public function __construct( string $metabox_slug, NoticesManager $notices_manager )
+  public function __construct( Metabox $metabox )
   {
     parent::__construct( $metabox_slug, $notices_manager );
 
-    add_action( 'admin_enqueue_scripts', fn() => $this->enqueue_js( $this->get_trigger_url() ) );
+    add_action( 'admin_enqueue_scripts', fn() => $this->enqueue_assets() );
   }
 
   final protected function on_handled() : void
   {
     $class_name = get_called_class();
 
-    throw new Exception(sprintf(
-      "You must call $class_name::send_{success|error}() in $class_name::handle()!",
-      get_called_class()
-    ));
+    throw new Exception( "You must ouput AJAX response in $class_name::handle() and then call exit()!" );
   }
 
-  final protected function send_success( array $response_data = [] ) : void
+  private function enqueue_assets() : void
   {
-    wp_send_json_success( $response_data );
+    $this->enqueue_js();
+
+    $ajax_url = $this->get_trigger_url();
+
+    $this->localize_js_data( $ajax_url );
   }
 
-  final protected function send_error( string $error, array $details_data = [] ) : void
-  {
-    wp_send_json_error([
-      'error' => $error,
-      'details' => $details_data,
-    ]);
-  }
+  abstract protected function enqueue_js() : void;
 
-  abstract protected function enqueue_js( string $ajax_url ) : void;
+  abstract protected function localize_js_data( string $ajax_url ) : void;
 }
