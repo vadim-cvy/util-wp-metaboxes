@@ -23,12 +23,12 @@ abstract class DirectURL extends Action
       array_values( $args )
     );
 
-    $url = add_query_arg( $args, $this->get_target_object_edit_url() );
+    $url = add_query_arg( $args, $this->get_current_object_edit_url() );
 
     return $url;
   }
 
-  private function get_target_object_edit_url() : string
+  final protected function get_current_object_edit_url() : string
   {
     $object_type = $this->metabox->get_current_object_type();
 
