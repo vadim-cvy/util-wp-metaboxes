@@ -15,6 +15,11 @@ abstract class PostTypeMetabox extends Metabox
     );
   }
 
+  public function get_current_object_type() : string
+  {
+    return 'post';
+  }
+
   abstract protected function get_post_types() : array;
 
   protected function get_context() : string

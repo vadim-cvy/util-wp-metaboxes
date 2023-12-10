@@ -28,5 +28,19 @@ abstract class DirectURL extends Action
     return $url;
   }
 
-  abstract protected function get_target_object_edit_url() : string;
+  private function get_target_object_edit_url() : string
+  {
+    $object_type = $this->metabox->get_current_object_type();
+
+    $object_id = $this->metabox->get_current_object_id();
+
+    switch ( $object_type )
+    {
+      case 'post':
+        return get_edit_post_link( $object_id );
+
+      default:
+        throw new Exception( "Unexpected object type: $object_type!" );
+    }
+  }
 }

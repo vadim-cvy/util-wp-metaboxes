@@ -88,7 +88,7 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   abstract public function get_current_object_id() : int;
 
-  abstract public function get_current_object_type() : int;
+  abstract public function get_current_object_type() : string;
 
   final protected function get_actions() : array
   {
