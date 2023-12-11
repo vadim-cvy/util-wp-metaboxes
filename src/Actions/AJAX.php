@@ -7,7 +7,7 @@ abstract class AJAX extends DirectURL
 {
   public function __construct( Metabox $metabox )
   {
-    parent::__construct( $metabox_slug, $notices_manager );
+    parent::__construct( $metabox );
 
     add_action( 'admin_enqueue_scripts', fn() => $this->enqueue_assets() );
   }
