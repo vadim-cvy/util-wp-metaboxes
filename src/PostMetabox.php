@@ -10,4 +10,9 @@ abstract class PostMetabox extends PostTypeMetabox
     return parent::is_current_screen_authorized()
       && $this->get_current_post_id() === $this->get_target_post_id();
   }
+
+  final protected function get_post_types() : array
+  {
+    return [ get_post_type( $this->get_target_post_id() ) ];
+  }
 }
