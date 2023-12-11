@@ -43,10 +43,10 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 
   private function is_authorized() : bool
   {
-    return $this->is_current_screen_authorized() && $this->is_current_user_authorized();
+    return $this->is_current_screen_eligable() && $this->is_current_user_authorized();
   }
 
-  abstract protected function is_current_screen_authorized() : bool;
+  abstract protected function is_current_screen_eligable() : bool;
 
   abstract protected function is_current_user_authorized() : bool;
 

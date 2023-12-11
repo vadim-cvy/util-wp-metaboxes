@@ -32,7 +32,7 @@ abstract class PostTypeMetabox extends Metabox
     return 'high';
   }
 
-  protected function is_current_screen_authorized() : bool
+  protected function is_current_screen_eligable() : bool
   {
     $screen = get_current_screen();
 
