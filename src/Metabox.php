@@ -1,6 +1,7 @@
 <?php
 namespace Cvy\WP\Metaboxes;
 use \Cvy\WP\Metaboxes\Notices\NoticesManager;
+use \Exception;
 
 abstract class Metabox extends \Cvy\DesignPatterns\Singleton
 {
@@ -25,7 +26,7 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
   {
     $this->register();
 
-    $this->init_actions();
+    $this->set_actions();
   }
 
   abstract protected function register() : void;
@@ -95,20 +96,24 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
     return $this->actions;
   }
 
-  private function init_actions() : void
+  private function set_actions() : void
   {
     if ( ! isset( $this->actions ) )
     {
       $this->actions = [];
 
-      foreach ( $this->create_action_instances() as $action )
+      foreach ( $this->generate_action_instances() as $action )
       {
         $this->actions[ $action->get_name_base() ] = $action;
       }
+    }
+    else
+    {
+      throw new Exception( 'Actions are alredy set!' );
     }
 
     $this->actions;
   }
 
-  abstract protected function create_action_instances() : array;
+  abstract protected function generate_action_instances() : array;
 }
