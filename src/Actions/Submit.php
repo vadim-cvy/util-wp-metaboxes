@@ -1,10 +1,23 @@
 <?php
 namespace Cvy\WP\Metaboxes\Actions;
 
+/**
+ * Represents a metabox submit action.
+ */
 abstract class Submit extends Action
 {
+  /**
+   * @override
+   */
   final protected function on_handled() : void {}
 
+  /**
+   * Generates and retrieves the HTML for the submit button.
+   *
+   * @param string $label The label for the submit button.
+   * @param array $attrs Additional attributes for the button tag.
+   * @param bool $show_submit_post_note Whether to show a note about saving post changes.
+   */
   final public function get_submit_button(
     string $label,
     array $attrs = [],
@@ -29,6 +42,9 @@ abstract class Submit extends Action
     return $output;
   }
 
+  /**
+   * Renders the hidden content needed for the action to be handled properly.
+   */
   final public function render_hidden_content() : void
   {
     echo sprintf( '<input type="hidden" name="%s" value="%s">',
@@ -37,8 +53,16 @@ abstract class Submit extends Action
     );
   }
 
-  final public function prefix_input_name( string $input_name ) : string
+  /**
+   * Prefixes an input name with the action's name.
+   *
+   * You need to prefix your input names associated with this action to make
+   * ::is_submitted(), ::get_args(), etc work properly.
+   *
+   * @param string $unprefixed_name The unprefixed name of the input.
+   */
+  final public function prefix_input_name( string $unprefixed_name ) : string
   {
-    return $this->prefix_arg_name( $input_name );
+    return $this->prefix_arg_name( $unprefixed_name );
   }
 }

@@ -2,13 +2,17 @@
 namespace Cvy\WP\Metaboxes\Actions;
 
 /**
- * Direct URL based action handler.
+ * Represents direct URL based actions.
  *
- * This class is developed for internal usage. DirectLink class (not DirectURL one)
- * is what you're looking for probably.
+ * This class is designed for internal usage, and DirectLink should be used externally.
  */
 abstract class DirectURL extends Action
 {
+  /**
+   * Retrieves the action trigger URL.
+   *
+   * @param array $args Additional arguments to be included in the URL.
+   */
   final protected function get_trigger_url( array $args = [] ) : string
   {
     $args['nonce'] = $this->create_nonce();
@@ -28,6 +32,9 @@ abstract class DirectURL extends Action
     return $url;
   }
 
+  /**
+   * Retrieves the URL for editing the current object (post/term/user).
+   */
   final protected function get_current_object_edit_url() : string
   {
     $object_type = $this->metabox->get_current_object_type();
