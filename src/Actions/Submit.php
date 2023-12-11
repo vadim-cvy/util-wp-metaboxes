@@ -29,7 +29,7 @@ abstract class Submit extends Action
     return $output;
   }
 
-  final public function _render_hidden_content() : void
+  final public function render_hidden_content() : void
   {
     echo sprintf( '<input type="hidden" name="%s" value="%s">',
       esc_attr( $this->prefix_input_name( 'nonce' ) ),

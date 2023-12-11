@@ -66,7 +66,7 @@ abstract class Metabox extends \Cvy\DesignPatterns\Singleton
       {
         if ( is_a( $action, Actions\Submit::class ) )
         {
-          $action->_render_hidden_content();
+          $action->render_hidden_content();
         }
       }
     }
